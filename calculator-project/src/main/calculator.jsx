@@ -2,6 +2,8 @@ import React, {Component} from "react";
 import './calculator.css'
 import Button from '../components/button'
 import Display from '../components/display'
+import MiniDisplay from "../components/miniDisplay";
+import miniDisplay from "../components/miniDisplay";
 import display from "../components/display";
 
 const initialState = {
@@ -9,7 +11,8 @@ const initialState = {
     clearDisplay: false,
     operation: null,
     values: [0, 0],
-    current: 0
+    current: 0,
+    miniDisplayValue: '',
 }
 
 export default class Calculator extends Component{
@@ -29,7 +32,9 @@ export default class Calculator extends Component{
 
     setOperation(operation){
         if(this.state.current === 0){
-            this.setState({operation, current: 1, clearDisplay: true});
+            this.setState({operation, current: 1, clearDisplay: true},
+                () =>{this.addValueMinDisplay(false);}
+            );
         }
         else{
             const equals = operation === '=';
@@ -40,20 +45,33 @@ export default class Calculator extends Component{
                 values[0] = eval(`${values[0]} ${currentOperation} ${values[1]}`)
                 if (isNaN(values[0]) || !isFinite(values[0])) {
                     this.clearMemory()
-                return
+                    return
                 }
             }
             catch(e){
                 values[0] = this.state.values[0];
+                this.clearMemory()
+                return
             }
+
             values[1] = 0;
+            if(equals){
+                this.addValueMinDisplay(equals);
+            }
             this.setState({
                 displayValue: values[0],
                 operation: equals ? null : operation,
                 current: equals ? 0 : 1,
                 clearDisplay: !equals,
                 values
-            })
+            },
+            
+            () =>
+            {
+                if(!equals){
+                    this.addValueMinDisplay(equals);
+                }   
+            });
         }
     }
 
@@ -81,9 +99,37 @@ export default class Calculator extends Component{
         }
     }
 
+    addValueMinDisplay(equals){
+        const currentOperation = this.state.operation;
+        const values = [...this.state.values];
+        let miniDisplayValue = '';
+        if(this.state.current && (!equals)){
+            miniDisplayValue = `${values[0]} ${currentOperation}`;
+        }
+        else if((currentOperation !== '=') && (equals)){
+            miniDisplayValue = `${values[0]} ${currentOperation} ${values[1]} = `;
+            console.log(miniDisplayValue);
+            console.log(this.state);
+        }
+        this.setState({miniDisplayValue});
+        // const currentOperation = op !== '=' ? op : this.state.operation;
+        // const values = [...this.state.values];
+        // console.log(op);
+        // console.log(index);
+        // if(index && currentOperation === '=' ){
+        //     const miniDisplayValue = `${values[0]} ${currentOperation} ${values[1]} = `;
+        //     this.setState({miniDisplayValue});
+        // }
+        // else{
+        //     const miniDisplayValue = `${values[0]} ${currentOperation}`;
+        //     this.setState({miniDisplayValue});
+        // }
+    }
+
     render(){
         return(
             <div className="calculator">
+                <MiniDisplay value={this.state.miniDisplayValue}/>
                 <Display value={this.state.displayValue}/>
                 <Button label="AC" click={this.clearMemory} triple/>
                 <Button label="/" click={this.setOperation} operation/>

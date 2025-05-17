@@ -1,4 +1,6 @@
-# Getting Started with Create React App
+# Project of a Calculator
+
+
 
 **npm i -g create-react-app**
 
